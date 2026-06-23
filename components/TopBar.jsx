@@ -1,21 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 export default function TopBar() {
   return (
     <header style={styles.topbar}>
       <div style={styles.topbarInner}>
         <div style={styles.brand}>
-          <div style={styles.brandMark}>IB</div>
+          <div style={styles.logoWrap}>
+            <Image src="/logo.png" alt="SAHY TECHNOLOGIE" width={40} height={40} style={{ objectFit: "contain" }} />
+          </div>
           <div>
             <div style={styles.brandTitle}>Informatique Bureautique</div>
-            <div style={styles.brandSub}>Inscriptions — Bobo-Dioulasso</div>
+            <div style={styles.brandSub}>SAHY TECHNOLOGIE — Bobo-Dioulasso</div>
           </div>
         </div>
         <nav style={styles.nav}>
           <Link href="/" style={styles.navBtn}>
             S'inscrire
+          </Link>
+          <Link href="/suivi" style={styles.navBtn}>
+            Suivre mon inscription
           </Link>
           <Link href="/admin" style={styles.navBtn}>
             Espace organisateur
@@ -41,23 +47,24 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 10,
   },
   brand: { display: "flex", alignItems: "center", gap: 10 },
-  brandMark: {
-    width: 38,
-    height: 38,
+  logoWrap: {
+    width: 44,
+    height: 44,
     borderRadius: 10,
-    background: "var(--red)",
-    color: "#fff",
+    border: "1px solid var(--line)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontWeight: 800,
-    fontSize: 15,
+    background: "#fff",
+    overflow: "hidden",
   },
   brandTitle: { fontWeight: 700, fontSize: 14, lineHeight: 1.2, color: "var(--navy)" },
   brandSub: { fontSize: 11.5, color: "#64748b" },
-  nav: { display: "flex", gap: 8 },
+  nav: { display: "flex", gap: 8, flexWrap: "wrap" },
   navBtn: {
     border: "1px solid var(--line)",
     background: "#fff",

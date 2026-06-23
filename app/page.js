@@ -29,6 +29,7 @@ export default function HomePage() {
     nom: "",
     prenom: "",
     telephone: "",
+    email: "",
     sexe: "",
     profession: "",
     operateur: "",
@@ -48,6 +49,9 @@ export default function HomePage() {
     if (!form.nom.trim()) e.nom = "Le nom est requis.";
     if (!form.prenom.trim()) e.prenom = "Le prénom est requis.";
     if (!/^[\d+ ]{8,}$/.test(form.telephone.trim())) e.telephone = "Numéro de téléphone invalide.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      e.email = "Adresse email invalide — elle sera utilisée pour vous envoyer votre reçu.";
+    }
     if (!form.sexe) e.sexe = "Sélectionnez une option.";
     if (!form.operateur) e.operateur = "Sélectionnez l'opérateur utilisé pour le paiement.";
     if (!form.declaration) e.declaration = "Vous devez confirmer avoir effectué le paiement.";
@@ -75,7 +79,7 @@ export default function HomePage() {
         return;
       }
 
-      router.push(`/merci?id=${data.record.id}`);
+      router.push(`/en-attente?id=${data.record.id}`);
     } catch (err) {
       setServerError("Impossible de contacter le serveur. Vérifiez votre connexion.");
       setSubmitting(false);
@@ -167,6 +171,20 @@ export default function HomePage() {
                   placeholder="+226 70 00 00 00"
                 />
               </Field>
+
+              <Field label="Adresse email" error={errors.email}>
+                <input
+                  type="email"
+                  style={inputStyle(errors.email)}
+                  value={form.email}
+                  onChange={(e) => set("email", e.target.value)}
+                  placeholder="vous@exemple.com"
+                />
+              </Field>
+              <div style={styles.emailHint}>
+                Votre reçu et le lien WhatsApp vous seront envoyés à cette adresse dès que votre
+                paiement sera confirmé.
+              </div>
 
               <div style={styles.formGrid2}>
                 <Field label="Sexe" error={errors.sexe}>
@@ -358,6 +376,7 @@ const styles = {
     color: "var(--navy)",
     background: "#fbfbfd",
   },
+  emailHint: { fontSize: 11.5, color: "#94a3b8", marginTop: -8 },
   errorText: { fontSize: 12, color: "var(--red)", fontWeight: 600 },
   serverError: {
     fontSize: 13,

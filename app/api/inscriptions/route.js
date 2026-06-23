@@ -5,14 +5,16 @@ import { genReceiptNumber, TOTAL } from "@/lib/config";
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { nom, prenom, telephone, sexe, profession, operateur, transactionRef } = body;
+    const { nom, prenom, telephone, email, sexe, profession, operateur, transactionRef } = body;
 
-    // Validation côté serveur (ne jamais faire confiance uniquement au frontend)
     if (!nom?.trim() || !prenom?.trim()) {
       return NextResponse.json({ error: "Le nom et le prénom sont requis." }, { status: 400 });
     }
     if (!telephone || !/^[\d+ ]{8,}$/.test(telephone.trim())) {
       return NextResponse.json({ error: "Numéro de téléphone invalide." }, { status: 400 });
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 });
     }
     if (!sexe) {
       return NextResponse.json({ error: "Le champ sexe est requis." }, { status: 400 });
@@ -31,6 +33,7 @@ export async function POST(request) {
         nom: nom.trim(),
         prenom: prenom.trim(),
         telephone: telephone.trim(),
+        email: email.trim(),
         sexe,
         profession: profession?.trim() || null,
         operateur,
