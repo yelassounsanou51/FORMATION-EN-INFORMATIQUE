@@ -8,11 +8,6 @@ function checkAdmin(request) {
   return adminCode && adminCode === process.env.ADMIN_CODE;
 }
 
-// Récupère UNE inscription par son id (utilisé par les pages /en-attente et
-// /suivi). Pas besoin d'être admin : l'id généré (IB-AAAAMMJJ-XXXX) agit
-// comme un jeton d'accès non-devinable, et cette route ne permet jamais de
-// lister l'ensemble des inscriptions, seulement d'en récupérer une si on
-// connaît déjà l'id exact.
 export async function GET(request, { params }) {
   try {
     const { id } = params;
@@ -30,11 +25,6 @@ export async function GET(request, { params }) {
   }
 }
 
-// Met à jour le statut d'une inscription. Si le nouveau statut est "confirmé",
-// déclenche automatiquement l'envoi de l'email avec le reçu PDF en pièce
-// jointe et le lien WhatsApp. L'échec de l'email ne fait jamais échouer la
-// confirmation elle-même — l'organisateur garde le contrôle via /admin et la
-// personne peut toujours vérifier via /suivi.
 export async function PATCH(request, { params }) {
   try {
     if (!checkAdmin(request)) {
@@ -80,7 +70,6 @@ export async function PATCH(request, { params }) {
   }
 }
 
-// Supprime une inscription
 export async function DELETE(request, { params }) {
   try {
     if (!checkAdmin(request)) {

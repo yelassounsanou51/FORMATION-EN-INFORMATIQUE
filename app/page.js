@@ -5,15 +5,15 @@ import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
   Copy,
-  ChevronRight,
-  ClipboardList,
-  Smartphone,
+  ArrowRight,
   MapPin,
   Clock3,
   Lock,
+  Laptop2,
 } from "lucide-react";
 import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
+import ArcMark from "@/components/ArcMark";
 import {
   FORMATION,
   PAYMENT_NUMBERS,
@@ -50,7 +50,7 @@ export default function HomePage() {
     if (!form.prenom.trim()) e.prenom = "Le prénom est requis.";
     if (!/^[\d+ ]{8,}$/.test(form.telephone.trim())) e.telephone = "Numéro de téléphone invalide.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-      e.email = "Adresse email invalide — elle sera utilisée pour vous envoyer votre reçu.";
+      e.email = "Adresse email invalide — utilisée pour vous envoyer votre reçu.";
     }
     if (!form.sexe) e.sexe = "Sélectionnez une option.";
     if (!form.operateur) e.operateur = "Sélectionnez l'opérateur utilisé pour le paiement.";
@@ -89,38 +89,64 @@ export default function HomePage() {
   return (
     <div style={styles.page}>
       <TopBar />
-      <main style={styles.main}>
-        <section style={styles.hero}>
-          <div style={styles.heroLeft}>
-            <span style={styles.eyebrow}>FORMATION PROFESSIONNELLE</span>
-            <h1 style={styles.h1}>
-              Maîtrisez l'outil
-              <br />
-              <span style={{ color: "var(--red)" }}>informatique</span>
-            </h1>
-            <p style={styles.heroText}>
-              Word, Excel, PowerPoint, Internet et Intelligence Artificielle — une semaine pour
-              prendre en main la suite bureautique, à Bobo-Dioulasso.
+
+      {/* HERO */}
+      <section style={styles.hero}>
+        <div style={styles.heroArc} aria-hidden="true">
+          <ArcMark size={420} animate />
+        </div>
+        <div style={styles.heroInner}>
+          <span style={styles.eyebrow}>{FORMATION.organisateur} · {FORMATION.subtitle}</span>
+          <h1 style={styles.h1}>
+            Maîtrisez l'outil
+            <br />
+            <span style={{ color: "var(--sahy-orange)" }}>informatique</span>
+          </h1>
+          <p style={styles.heroText}>
+            Word, Excel, PowerPoint, Internet et Intelligence Artificielle — une semaine pour
+            prendre en main la suite bureautique, à Bobo-Dioulasso.
+          </p>
+          <div style={styles.infoChips}>
+            <span style={styles.chip}>
+              <MapPin size={15} /> {FORMATION.lieu}
+            </span>
+            <span style={styles.chip}>
+              <Clock3 size={15} /> Début le {FORMATION.debut} · {FORMATION.duree}
+            </span>
+          </div>
+          <a href="#inscription" style={styles.heroCta}>
+            S'inscrire maintenant <ArrowRight size={17} />
+          </a>
+        </div>
+      </section>
+
+      {/* MODULES */}
+      <section style={styles.section}>
+        <div style={styles.sectionInner}>
+          <h2 style={styles.sectionTitle}>Ce que vous allez apprendre</h2>
+          <div style={styles.modulesGrid}>
+            {FORMATION.modules.map((m, i) => (
+              <div key={m.name} style={styles.moduleCard}>
+                <div style={styles.moduleIcon}>
+                  <Laptop2 size={18} color="var(--sahy-blue)" />
+                </div>
+                <div style={styles.moduleName}>{m.name}</div>
+                <div style={styles.moduleDesc}>{m.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PRIX + FORMULAIRE */}
+      <section id="inscription" style={styles.regSection}>
+        <div style={styles.regInner}>
+          <div style={styles.regLeft}>
+            <h2 style={styles.sectionTitle}>Tarifs et inscription</h2>
+            <p style={styles.regText}>
+              Remplissez le formulaire ci-contre, effectuez le paiement Mobile Money, et recevez
+              votre reçu officiel dès la confirmation de l'organisateur.
             </p>
-            <div style={styles.infoChips}>
-              <span style={styles.chip}>
-                <MapPin size={15} /> {FORMATION.lieu}
-              </span>
-              <span style={styles.chip}>
-                <Clock3 size={15} /> Début le {FORMATION.debut} · {FORMATION.duree}
-              </span>
-            </div>
-            <div style={styles.moduleBox}>
-              <div style={styles.moduleBoxTitle}>Modules au programme</div>
-              <ul style={styles.moduleList}>
-                {FORMATION.modules.map((m) => (
-                  <li key={m} style={styles.moduleItem}>
-                    <ChevronRight size={14} style={{ color: "var(--red)", flexShrink: 0 }} />
-                    {m}
-                  </li>
-                ))}
-              </ul>
-            </div>
             <div style={styles.priceRow}>
               <div style={styles.priceCard}>
                 <div style={styles.priceLabel}>Inscription</div>
@@ -130,153 +156,103 @@ export default function HomePage() {
                 <div style={styles.priceLabel}>Participation</div>
                 <div style={styles.priceValue}>{formatFCFA(PRICE_PARTICIPATION)}</div>
               </div>
-              <div style={{ ...styles.priceCard, background: "var(--navy)", color: "#fff" }}>
-                <div style={{ ...styles.priceLabel, color: "#cbd5e1" }}>Total à payer</div>
-                <div style={{ ...styles.priceValue, color: "#fff" }}>{formatFCFA(TOTAL)}</div>
+              <div style={styles.priceCardTotal}>
+                <div style={styles.priceLabelTotal}>Total à payer</div>
+                <div style={styles.priceValueTotal}>{formatFCFA(TOTAL)}</div>
               </div>
+            </div>
+
+            <div style={styles.stepsBox}>
+              <div style={styles.stepsTitle}>Comment ça marche</div>
+              <ol style={styles.stepsList}>
+                <li>Remplissez vos informations et choisissez votre opérateur.</li>
+                <li>Envoyez {formatFCFA(TOTAL)} sur le numéro Mobile Money indiqué.</li>
+                <li>L'organisateur vérifie le paiement et confirme votre place.</li>
+                <li>Vous recevez par email votre reçu et le lien du groupe WhatsApp.</li>
+              </ol>
             </div>
           </div>
 
-          <div style={styles.heroRight}>
+          <div style={styles.regRight}>
             <form onSubmit={handleSubmit} style={styles.formCard} noValidate>
-              <div style={styles.formCardHeader}>
-                <ClipboardList size={20} style={{ color: "var(--red)" }} />
-                <h2 style={styles.formCardTitle}>Formulaire d'inscription</h2>
-              </div>
+              <h3 style={styles.formTitle}>Formulaire d'inscription</h3>
 
               <div style={styles.formGrid2}>
                 <Field label="Nom" error={errors.nom}>
-                  <input
-                    style={inputStyle(errors.nom)}
-                    value={form.nom}
-                    onChange={(e) => set("nom", e.target.value)}
-                    placeholder="SANOU"
-                  />
+                  <input style={inputStyle(errors.nom)} value={form.nom} onChange={(e) => set("nom", e.target.value)} placeholder="SANOU" />
                 </Field>
                 <Field label="Prénom" error={errors.prenom}>
-                  <input
-                    style={inputStyle(errors.prenom)}
-                    value={form.prenom}
-                    onChange={(e) => set("prenom", e.target.value)}
-                    placeholder="Aïcha"
-                  />
+                  <input style={inputStyle(errors.prenom)} value={form.prenom} onChange={(e) => set("prenom", e.target.value)} placeholder="Aïcha" />
                 </Field>
               </div>
 
               <Field label="Numéro de téléphone" error={errors.telephone}>
-                <input
-                  style={inputStyle(errors.telephone)}
-                  value={form.telephone}
-                  onChange={(e) => set("telephone", e.target.value)}
-                  placeholder="+226 70 00 00 00"
-                />
+                <input style={inputStyle(errors.telephone)} value={form.telephone} onChange={(e) => set("telephone", e.target.value)} placeholder="+226 70 00 00 00" />
               </Field>
 
               <Field label="Adresse email" error={errors.email}>
-                <input
-                  type="email"
-                  style={inputStyle(errors.email)}
-                  value={form.email}
-                  onChange={(e) => set("email", e.target.value)}
-                  placeholder="vous@exemple.com"
-                />
+                <input type="email" style={inputStyle(errors.email)} value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="vous@exemple.com" />
               </Field>
-              <div style={styles.emailHint}>
-                Votre reçu et le lien WhatsApp vous seront envoyés à cette adresse dès que votre
-                paiement sera confirmé.
-              </div>
+              <div style={styles.hint}>Votre reçu et le lien WhatsApp seront envoyés ici dès confirmation.</div>
 
               <div style={styles.formGrid2}>
                 <Field label="Sexe" error={errors.sexe}>
-                  <select
-                    style={inputStyle(errors.sexe)}
-                    value={form.sexe}
-                    onChange={(e) => set("sexe", e.target.value)}
-                  >
+                  <select style={inputStyle(errors.sexe)} value={form.sexe} onChange={(e) => set("sexe", e.target.value)}>
                     <option value="">Choisir</option>
                     <option value="Femme">Femme</option>
                     <option value="Homme">Homme</option>
                   </select>
                 </Field>
                 <Field label="Profession (optionnel)">
-                  <input
-                    style={inputStyle()}
-                    value={form.profession}
-                    onChange={(e) => set("profession", e.target.value)}
-                    placeholder="Étudiant(e), salarié(e)..."
-                  />
+                  <input style={inputStyle()} value={form.profession} onChange={(e) => set("profession", e.target.value)} placeholder="Étudiant(e)..." />
                 </Field>
               </div>
 
               <div style={styles.divider} />
+              <h3 style={styles.formTitle}>Paiement Mobile Money</h3>
+              <p style={styles.payHelp}>Envoyez {formatFCFA(TOTAL)} sur l'un des numéros, puis déclarez votre paiement.</p>
 
-              <div style={styles.paySection}>
-                <div style={styles.formCardHeader}>
-                  <Smartphone size={20} style={{ color: "var(--red)" }} />
-                  <h2 style={styles.formCardTitle}>Paiement Mobile Money</h2>
-                </div>
-                <p style={styles.payHelp}>
-                  Envoyez <strong>{formatFCFA(TOTAL)}</strong> ({formatFCFA(PRICE_INSCRIPTION)}{" "}
-                  d'inscription + {formatFCFA(PRICE_PARTICIPATION)} de participation) sur l'un des
-                  numéros ci-dessous, puis déclarez votre paiement.
-                </p>
-                <div style={styles.payNumbers}>
-                  {PAYMENT_NUMBERS.map((p) => (
-                    <PaymentNumberRow key={p.number} operator={p.operator} number={p.number} />
-                  ))}
-                </div>
-
-                <Field label="Opérateur utilisé" error={errors.operateur}>
-                  <select
-                    style={inputStyle(errors.operateur)}
-                    value={form.operateur}
-                    onChange={(e) => set("operateur", e.target.value)}
-                  >
-                    <option value="">Choisir</option>
-                    <option value="Orange Money">Orange Money</option>
-                    <option value="Moov Money">Moov Money</option>
-                    <option value="Wave">Wave</option>
-                  </select>
-                </Field>
-
-                <Field label="Référence de la transaction (optionnel)">
-                  <input
-                    style={inputStyle()}
-                    value={form.transactionRef}
-                    onChange={(e) => set("transactionRef", e.target.value)}
-                    placeholder="ID ou référence SMS reçu de l'opérateur"
-                  />
-                </Field>
-
-                <label style={styles.checkboxRow}>
-                  <input
-                    type="checkbox"
-                    checked={form.declaration}
-                    onChange={(e) => set("declaration", e.target.checked)}
-                    style={{ marginTop: 3 }}
-                  />
-                  <span style={{ color: errors.declaration ? "var(--red)" : "var(--navy)" }}>
-                    Je confirme avoir effectué le paiement de {formatFCFA(TOTAL)} sur un des numéros
-                    indiqués. Mon inscription sera validée après vérification par l'organisateur.
-                  </span>
-                </label>
-                {errors.declaration && <div style={styles.errorText}>{errors.declaration}</div>}
+              <div style={styles.payNumbers}>
+                {PAYMENT_NUMBERS.map((p) => (
+                  <PaymentRow key={p.number} operator={p.operator} number={p.number} />
+                ))}
               </div>
+
+              <Field label="Opérateur utilisé" error={errors.operateur}>
+                <select style={inputStyle(errors.operateur)} value={form.operateur} onChange={(e) => set("operateur", e.target.value)}>
+                  <option value="">Choisir</option>
+                  <option value="Orange Money">Orange Money</option>
+                  <option value="Moov Money">Moov Money</option>
+                  <option value="Wave">Wave</option>
+                </select>
+              </Field>
+
+              <Field label="Référence de la transaction (optionnel)">
+                <input style={inputStyle()} value={form.transactionRef} onChange={(e) => set("transactionRef", e.target.value)} placeholder="ID ou référence SMS reçu de l'opérateur" />
+              </Field>
+
+              <label style={styles.checkboxRow}>
+                <input type="checkbox" checked={form.declaration} onChange={(e) => set("declaration", e.target.checked)} style={{ marginTop: 3 }} />
+                <span style={{ color: errors.declaration ? "#c0392b" : "var(--ink)" }}>
+                  Je confirme avoir effectué le paiement de {formatFCFA(TOTAL)}. Mon inscription sera validée après vérification.
+                </span>
+              </label>
+              {errors.declaration && <div style={styles.errorText}>{errors.declaration}</div>}
 
               {serverError && <div style={styles.serverError}>{serverError}</div>}
 
               <button type="submit" disabled={submitting} style={styles.submitBtn}>
                 {submitting ? "Enregistrement..." : "Valider mon inscription"}
-                {!submitting && <ChevronRight size={18} />}
+                {!submitting && <ArrowRight size={18} />}
               </button>
               <div style={styles.lockNote}>
-                <Lock size={12} /> Vos informations restent confidentielles et ne sont utilisées que
-                pour cette formation.
+                <Lock size={12} /> Vos informations restent confidentielles.
               </div>
             </form>
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
+
       <Footer />
     </div>
   );
@@ -292,7 +268,7 @@ function Field({ label, error, children }) {
   );
 }
 
-function PaymentNumberRow({ operator, number }) {
+function PaymentRow({ operator, number }) {
   const [copied, setCopied] = useState(false);
   return (
     <div style={styles.payRow}>
@@ -317,116 +293,91 @@ function PaymentNumberRow({ operator, number }) {
 }
 
 function inputStyle(error) {
-  return {
-    ...styles.input,
-    borderColor: error ? "var(--red)" : "var(--line)",
-  };
+  return { ...styles.input, borderColor: error ? "#c0392b" : "var(--line)" };
 }
 
 const styles = {
   page: { minHeight: "100vh", display: "flex", flexDirection: "column" },
-  main: { flex: 1, padding: "32px 20px 56px" },
-  hero: { maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "1.05fr 1fr", gap: 36 },
-  heroLeft: { display: "flex", flexDirection: "column", gap: 16 },
-  eyebrow: { fontSize: 12, fontWeight: 800, letterSpacing: 1.2, color: "var(--red)" },
-  h1: { fontSize: 38, lineHeight: 1.1, margin: 0, fontWeight: 800, color: "var(--navy)" },
-  heroText: { fontSize: 15, color: "#475569", lineHeight: 1.6, maxWidth: 480 },
-  infoChips: { display: "flex", gap: 10, flexWrap: "wrap" },
+
+  hero: {
+    background: "linear-gradient(135deg, var(--sahy-blue) 0%, var(--sahy-blue-dark) 100%)",
+    color: "#fff",
+    position: "relative",
+    overflow: "hidden",
+    padding: "64px 24px 80px",
+  },
+  heroArc: { position: "absolute", right: -80, top: -60, opacity: 0.18, filter: "brightness(2)" },
+  heroInner: { maxWidth: 1140, margin: "0 auto", position: "relative", zIndex: 1, maxWidth: 640 },
+  eyebrow: { fontSize: 12.5, fontWeight: 700, letterSpacing: 1.2, color: "var(--sahy-orange)", textTransform: "uppercase" },
+  h1: { fontFamily: "var(--font-display)", fontSize: 46, lineHeight: 1.08, margin: "14px 0 16px", fontWeight: 800 },
+  heroText: { fontSize: 16, color: "#dbe4f7", lineHeight: 1.65, maxWidth: 480, marginBottom: 22 },
+  infoChips: { display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 28 },
   chip: {
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    fontSize: 12.5,
-    fontWeight: 600,
-    color: "var(--navy)",
-    background: "#fff",
-    border: "1px solid var(--line)",
-    borderRadius: 100,
-    padding: "6px 12px",
+    display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600,
+    color: "#fff", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)",
+    borderRadius: 100, padding: "7px 14px",
   },
-  moduleBox: { background: "#fff", border: "1px solid var(--line)", borderRadius: 14, padding: 18, marginTop: 4 },
-  moduleBoxTitle: { fontWeight: 800, fontSize: 13, marginBottom: 10, color: "var(--navy)" },
-  moduleList: { listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 8 },
-  moduleItem: { display: "flex", alignItems: "center", gap: 6, fontSize: 13.5, color: "#334155" },
-  priceRow: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginTop: 4 },
-  priceCard: { background: "#fff", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px" },
-  priceLabel: { fontSize: 11.5, color: "#64748b", fontWeight: 600, marginBottom: 4 },
-  priceValue: { fontSize: 16, fontWeight: 800, color: "var(--navy)" },
-  heroRight: {},
+  heroCta: {
+    display: "inline-flex", alignItems: "center", gap: 8, background: "var(--sahy-orange)",
+    color: "#fff", textDecoration: "none", fontWeight: 700, fontSize: 15, padding: "14px 24px",
+    borderRadius: 12, boxShadow: "0 12px 24px -8px rgba(255,122,26,0.5)",
+  },
+
+  section: { padding: "64px 24px" },
+  sectionInner: { maxWidth: 1140, margin: "0 auto" },
+  sectionTitle: { fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 800, color: "var(--sahy-blue)", margin: "0 0 28px" },
+
+  modulesGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 },
+  moduleCard: { background: "#fff", border: "1px solid var(--line)", borderRadius: 16, padding: 22 },
+  moduleIcon: {
+    width: 38, height: 38, borderRadius: 10, background: "#eaf0fb",
+    display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14,
+  },
+  moduleName: { fontWeight: 700, fontSize: 15, color: "var(--ink)", marginBottom: 4 },
+  moduleDesc: { fontSize: 13, color: "var(--muted)", lineHeight: 1.5 },
+
+  regSection: { background: "#fff", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)", padding: "64px 24px" },
+  regInner: { maxWidth: 1140, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48 },
+  regLeft: { display: "flex", flexDirection: "column", gap: 18 },
+  regText: { fontSize: 15, color: "var(--muted)", lineHeight: 1.65, margin: 0, maxWidth: 420 },
+
+  priceRow: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 },
+  priceCard: { background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 14, padding: "14px 16px" },
+  priceLabel: { fontSize: 11.5, color: "var(--muted)", fontWeight: 600, marginBottom: 4 },
+  priceValue: { fontSize: 17, fontWeight: 800, color: "var(--ink)" },
+  priceCardTotal: { background: "var(--sahy-blue)", borderRadius: 14, padding: "14px 16px" },
+  priceLabelTotal: { fontSize: 11.5, color: "#cdd7ee", fontWeight: 600, marginBottom: 4 },
+  priceValueTotal: { fontSize: 17, fontWeight: 800, color: "#fff" },
+
+  stepsBox: { background: "#eaf0fb", borderRadius: 16, padding: 22 },
+  stepsTitle: { fontWeight: 800, fontSize: 14, color: "var(--sahy-blue)", marginBottom: 10 },
+  stepsList: { margin: 0, paddingLeft: 18, color: "var(--sahy-blue-dark)", fontSize: 13.5, lineHeight: 1.8 },
+
+  regRight: {},
   formCard: {
-    background: "#fff",
-    border: "1px solid var(--line)",
-    borderRadius: 18,
-    padding: 26,
-    display: "flex",
-    flexDirection: "column",
-    gap: 14,
-    boxShadow: "0 12px 30px -18px rgba(15,27,61,0.25)",
+    background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 20, padding: 28,
+    display: "flex", flexDirection: "column", gap: 14,
+    boxShadow: "0 24px 48px -24px rgba(13,59,140,0.18)",
   },
-  formCardHeader: { display: "flex", alignItems: "center", gap: 8, marginBottom: 2 },
-  formCardTitle: { fontSize: 16, fontWeight: 800, margin: 0, color: "var(--navy)" },
+  formTitle: { fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 700, color: "var(--sahy-blue)", margin: "4px 0 2px" },
   formGrid2: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
   field: { display: "flex", flexDirection: "column", gap: 5 },
-  label: { fontSize: 12.5, fontWeight: 700, color: "#334155" },
-  input: {
-    border: "1px solid var(--line)",
-    borderRadius: 10,
-    padding: "10px 12px",
-    fontSize: 14,
-    color: "var(--navy)",
-    background: "#fbfbfd",
-  },
-  emailHint: { fontSize: 11.5, color: "#94a3b8", marginTop: -8 },
-  errorText: { fontSize: 12, color: "var(--red)", fontWeight: 600 },
-  serverError: {
-    fontSize: 13,
-    color: "var(--red)",
-    fontWeight: 600,
-    background: "#fdecee",
-    borderRadius: 10,
-    padding: "10px 12px",
-  },
+  label: { fontSize: 12.5, fontWeight: 600, color: "var(--ink)" },
+  input: { border: "1px solid var(--line)", borderRadius: 10, padding: "11px 12px", fontSize: 14, color: "var(--ink)", background: "#fff" },
+  hint: { fontSize: 11.5, color: "var(--muted)", marginTop: -8 },
+  errorText: { fontSize: 12, color: "#c0392b", fontWeight: 600 },
+  serverError: { fontSize: 13, color: "#c0392b", fontWeight: 600, background: "#fdecea", borderRadius: 10, padding: "10px 12px" },
   divider: { height: 1, background: "var(--line)", margin: "4px 0" },
-  paySection: { display: "flex", flexDirection: "column", gap: 12 },
-  payHelp: { fontSize: 13, color: "#475569", lineHeight: 1.5, margin: 0 },
+  payHelp: { fontSize: 13, color: "var(--muted)", lineHeight: 1.5, margin: 0 },
   payNumbers: { display: "flex", flexDirection: "column", gap: 8 },
-  payRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    background: "#fbfbfd",
-    border: "1px solid var(--line)",
-    borderRadius: 10,
-    padding: "10px 12px",
-  },
-  payOperator: { fontSize: 12, color: "#64748b", fontWeight: 600 },
-  payNumber: { fontSize: 14.5, fontWeight: 800, color: "var(--navy)" },
-  copyBtn: {
-    display: "flex",
-    alignItems: "center",
-    gap: 5,
-    border: "1px solid var(--line)",
-    background: "#fff",
-    borderRadius: 8,
-    padding: "6px 10px",
-    fontSize: 12,
-    fontWeight: 700,
-    color: "var(--navy)",
-  },
+  payRow: { display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 12px" },
+  payOperator: { fontSize: 12, color: "var(--muted)", fontWeight: 600 },
+  payNumber: { fontSize: 14.5, fontWeight: 800, color: "var(--ink)" },
+  copyBtn: { display: "flex", alignItems: "center", gap: 5, border: "1px solid var(--line)", background: "#fff", borderRadius: 8, padding: "6px 10px", fontSize: 12, fontWeight: 700, color: "var(--sahy-blue)" },
   checkboxRow: { display: "flex", gap: 8, fontSize: 12.5, lineHeight: 1.5, alignItems: "flex-start" },
   submitBtn: {
-    background: "var(--red)",
-    color: "#fff",
-    border: "none",
-    borderRadius: 12,
-    padding: "14px 18px",
-    fontWeight: 800,
-    fontSize: 15,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    marginTop: 4,
+    background: "var(--sahy-orange)", color: "#fff", border: "none", borderRadius: 12, padding: "15px 18px",
+    fontWeight: 800, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 4,
   },
-  lockNote: { display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "#94a3b8", justifyContent: "center" },
+  lockNote: { display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, color: "var(--muted)", justifyContent: "center" },
 };

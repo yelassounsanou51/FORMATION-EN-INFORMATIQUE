@@ -1,1 +1,6 @@
-lib/config.js
+node_modules/
+.next/
+.env.local
+.env*.local
+npm-debug.log*
+.DS_Store

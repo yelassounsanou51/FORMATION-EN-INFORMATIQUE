@@ -7,8 +7,8 @@ export default function SuiviPage() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <TopBar />
-      <main style={{ flex: 1, padding: "32px 20px 56px" }}>
-        <Suspense fallback={<p style={{ textAlign: "center", color: "#64748b" }}>Chargement...</p>}>
+      <main style={{ flex: 1, padding: "48px 24px 64px" }}>
+        <Suspense fallback={<p style={{ textAlign: "center", color: "var(--muted)" }}>Chargement...</p>}>
           <TrackingClient />
         </Suspense>
       </main>

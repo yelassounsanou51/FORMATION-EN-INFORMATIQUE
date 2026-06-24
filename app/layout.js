@@ -1,9 +1,9 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Inscription — Formation Informatique Bureautique | Bobo-Dioulasso",
+  title: "Informatique Bureautique — SAHY TECHNOLOGIE",
   description:
-    "Inscrivez-vous à la formation professionnelle Informatique Bureautique à Bobo-Dioulasso : Word, Excel, PowerPoint, Internet et IA.",
+    "Inscrivez-vous à la formation professionnelle Informatique Bureautique organisée par SAHY TECHNOLOGIE à Bobo-Dioulasso : Word, Excel, PowerPoint, Internet et IA.",
 };
 
 export default function RootLayout({ children }) {

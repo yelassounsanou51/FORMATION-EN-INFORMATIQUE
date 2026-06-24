@@ -1,49 +1,49 @@
-# Plateforme d'inscription — Formation Informatique Bureautique
+# SAHY TECHNOLOGIE — Plateforme d'inscription Informatique Bureautique
 
-Site web permettant aux participants de s'inscrire à la formation
-"Informatique Bureautique" (Bobo-Dioulasso), de déclarer leur paiement Mobile
-Money, de recevoir un reçu automatique, et de rejoindre le groupe WhatsApp.
-Un espace organisateur protégé par code permet de suivre et confirmer les
-inscriptions.
+Site web complet permettant aux participants de s'inscrire à la formation,
+déclarer leur paiement Mobile Money, suivre leur statut, et recevoir
+automatiquement par email leur reçu + le lien WhatsApp dès confirmation par
+l'organisateur.
 
 ## Démarrer en local
 
 ```bash
 npm install
 cp .env.local.example .env.local
-# puis remplis .env.local avec tes clés Supabase (voir GUIDE_DEPLOIEMENT.md)
+# remplis .env.local avec tes clés Supabase et Resend
 npm run dev
 ```
 
-Ouvre http://localhost:3000
+## Variables d'environnement nécessaires (sur Vercel)
 
-## Déployer en ligne
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `RESEND_API_KEY`
+- `ADMIN_CODE`
 
-Suis le fichier **GUIDE_DEPLOIEMENT.md** — il explique pas à pas comment
-créer la base de données (Supabase) et mettre le site en ligne (Vercel),
-gratuitement, avec ton compte GitHub.
-
-## Structure du projet
+## Structure
 
 ```
 app/
-  page.js                  → page d'accueil + formulaire d'inscription
-  merci/                   → page de reçu après inscription
-  admin/                   → espace organisateur (liste des inscrits)
-  api/inscriptions/        → API : créer / lister les inscriptions
-  api/inscriptions/[id]/   → API : récupérer / confirmer / supprimer une inscription
-  api/admin-login/         → API : vérifier le code organisateur
+  page.js                    → page d'accueil + formulaire d'inscription
+  en-attente/                → accusé de réception après inscription
+  suivi/                     → vérifier le statut avec son numéro
+  admin/                     → espace organisateur (confirmer les paiements)
+  api/inscriptions/          → créer / lister les inscriptions
+  api/inscriptions/[id]/     → consulter / confirmer / supprimer une inscription
+  api/admin-login/           → vérifier le code organisateur
 lib/
-  config.js                → infos formation, prix, lien WhatsApp, numéros
-  supabaseAdmin.js          → client base de données (usage serveur uniquement)
-  supabasePublic.js         → client base de données (usage navigateur)
+  config.js                  → infos formation, prix, lien WhatsApp, numéros
+  email.js                   → envoi de l'email de confirmation (Resend)
+  pdfReceipt.js               → génération du reçu PDF côté serveur
+  supabaseAdmin.js            → client base de données (serveur uniquement)
 components/
-  TopBar.jsx, Footer.jsx    → éléments d'interface partagés
-supabase_setup.sql          → script à exécuter dans Supabase pour créer la table
+  TopBar.jsx, Footer.jsx, ArcMark.jsx
+public/
+  logo.png                   → logo SAHY TECHNOLOGIE
 ```
 
 ## Personnaliser
 
-Toutes les informations de la formation (dates, prix, modules, numéros de
-paiement, lien WhatsApp) se trouvent dans **`lib/config.js`** — modifie ce
-fichier pour une autre session de formation.
+Toutes les informations de la formation se trouvent dans `lib/config.js`.

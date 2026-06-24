@@ -46,10 +46,7 @@ export async function POST(request) {
 
     if (error) {
       console.error("Erreur Supabase (insert):", error);
-      return NextResponse.json(
-        { error: "Impossible d'enregistrer l'inscription. Réessayez." },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Impossible d'enregistrer l'inscription. Réessayez." }, { status: 500 });
     }
 
     return NextResponse.json({ record: data }, { status: 201 });
@@ -59,7 +56,6 @@ export async function POST(request) {
   }
 }
 
-// Liste toutes les inscriptions — protégée par le code admin transmis en en-tête
 export async function GET(request) {
   try {
     const adminCode = request.headers.get("x-admin-code");

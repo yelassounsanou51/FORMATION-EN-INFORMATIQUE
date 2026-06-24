@@ -1,5 +1,7 @@
 -- ============================================================
 -- À copier-coller dans Supabase > SQL Editor > New query > Run
+-- Si tu avais déjà créé la table sans la colonne email, ce script
+-- l'ajoute automatiquement grâce à "if not exists".
 -- ============================================================
 
 create table if not exists inscriptions (
@@ -7,6 +9,7 @@ create table if not exists inscriptions (
   nom text not null,
   prenom text not null,
   telephone text not null,
+  email text,
   sexe text not null,
   profession text,
   operateur text not null,
@@ -16,19 +19,19 @@ create table if not exists inscriptions (
   date_inscription timestamptz not null default now()
 );
 
--- Index pour accélérer les recherches par téléphone et par statut
+alter table inscriptions add column if not exists email text;
+
 create index if not exists idx_inscriptions_telephone on inscriptions (telephone);
 create index if not exists idx_inscriptions_statut on inscriptions (statut);
 
--- Active la sécurité au niveau des lignes (RLS)
 alter table inscriptions enable row level security;
 
--- Autorise l'insertion publique (formulaire d'inscription ouvert à tous)
+drop policy if exists "Tout le monde peut s'inscrire" on inscriptions;
 create policy "Tout le monde peut s'inscrire"
   on inscriptions for insert
   to anon
   with check (true);
 
--- Bloque la lecture/modification publique : seule la clé "service role"
--- (utilisée uniquement côté serveur, jamais exposée au navigateur) peut lire/modifier.
--- Aucune policy SELECT/UPDATE/DELETE pour "anon" = accès refusé par défaut.
+-- Aucune policy SELECT/UPDATE/DELETE pour "anon" = accès en lecture/modification
+-- refusé par défaut au navigateur. Seule la clé "service role" (utilisée
+-- uniquement côté serveur) peut lire, confirmer ou supprimer des inscriptions.
