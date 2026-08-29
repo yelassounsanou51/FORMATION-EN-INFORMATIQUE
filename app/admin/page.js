@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ShieldCheck, Search, Trash2, BadgeCheck, Clock3, Phone } from "lucide-react";
+import { ShieldCheck, Search, Trash2, BadgeCheck, Clock3, Phone, LogOut } from "lucide-react";
 import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
 import { formatFCFA } from "@/lib/config";
-
-const SESSION_KEY = "admin_code_session";
 
 export default function AdminPage() {
   const [code, setCode] = useState("");
@@ -15,35 +13,42 @@ export default function AdminPage() {
   const [loginError, setLoginError] = useState("");
 
   useEffect(() => {
-    const saved = sessionStorage.getItem(SESSION_KEY);
-    if (saved) {
-      verifyCode(saved, { silent: true });
-    } else {
-      setChecking(false);
-    }
+    // La session vit dans un cookie httpOnly, invisible et inaccessible en
+    // JavaScript : on ne peut donc pas la lire directement, on demande au
+    // serveur si elle est valide.
+    fetch("/api/admin-login")
+      .then((res) => res.json())
+      .then((data) => setAuthed(Boolean(data.authed)))
+      .catch(() => setAuthed(false))
+      .finally(() => setChecking(false));
   }, []);
 
-  async function verifyCode(value, { silent } = {}) {
+  async function verifyCode() {
     setLoginError("");
-    if (!silent) setChecking(true);
+    setChecking(true);
     try {
       const res = await fetch("/api/admin-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: value }),
+        body: JSON.stringify({ code }),
       });
+      const data = await res.json();
       if (res.ok) {
-        sessionStorage.setItem(SESSION_KEY, value);
         setAuthed(true);
       } else {
-        sessionStorage.removeItem(SESSION_KEY);
-        if (!silent) setLoginError("Code incorrect.");
+        setLoginError(data.error || "Code incorrect.");
       }
     } catch (e) {
-      if (!silent) setLoginError("Impossible de vérifier le code.");
+      setLoginError("Impossible de vérifier le code.");
     } finally {
       setChecking(false);
+      setCode("");
     }
+  }
+
+  async function logout() {
+    await fetch("/api/admin-logout", { method: "POST" });
+    setAuthed(false);
   }
 
   if (checking) {
@@ -57,14 +62,14 @@ export default function AdminPage() {
   if (!authed) {
     return (
       <Shell>
-        <LoginForm code={code} setCode={setCode} error={loginError} onSubmit={() => verifyCode(code)} />
+        <LoginForm code={code} setCode={setCode} error={loginError} onSubmit={verifyCode} />
       </Shell>
     );
   }
 
   return (
     <Shell>
-      <Dashboard adminCode={sessionStorage.getItem(SESSION_KEY)} />
+      <Dashboard onLogout={logout} />
     </Shell>
   );
 }
@@ -102,7 +107,7 @@ function LoginForm({ code, setCode, error, onSubmit }) {
   );
 }
 
-function Dashboard({ adminCode }) {
+function Dashboard({ onLogout }) {
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -113,7 +118,9 @@ function Dashboard({ adminCode }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/inscriptions", { headers: { "x-admin-code": adminCode } });
+      // Le cookie de session est envoyé automatiquement par le navigateur :
+      // plus besoin de manipuler le code d'accès en JavaScript ici.
+      const res = await fetch("/api/inscriptions");
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Erreur de chargement.");
@@ -136,14 +143,14 @@ function Dashboard({ adminCode }) {
     setRegistrations((prev) => prev.map((r) => (r.id === id ? { ...r, statut } : r)));
     await fetch(`/api/inscriptions/${id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json", "x-admin-code": adminCode },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ statut }),
     });
   }
 
   async function deleteRegistration(id) {
     setRegistrations((prev) => prev.filter((r) => r.id !== id));
-    await fetch(`/api/inscriptions/${id}`, { method: "DELETE", headers: { "x-admin-code": adminCode } });
+    await fetch(`/api/inscriptions/${id}`, { method: "DELETE" });
   }
 
   const filtered = registrations.filter((r) => {
@@ -158,7 +165,12 @@ function Dashboard({ adminCode }) {
 
   return (
     <div style={styles.adminWrap}>
-      <h2 style={styles.adminTitle}>Inscriptions reçues</h2>
+      <div style={styles.headerRow}>
+        <h2 style={styles.adminTitle}>Inscriptions reçues</h2>
+        <button onClick={onLogout} style={styles.logoutBtn}>
+          <LogOut size={14} /> Déconnexion
+        </button>
+      </div>
 
       <div style={styles.statsRow}>
         <StatCard label="Total inscriptions" value={registrations.length} />
@@ -240,7 +252,9 @@ const styles = {
   loginBtn: { width: "100%", background: "var(--sahy-orange)", color: "#fff", border: "none", borderRadius: 12, padding: "13px 14px", fontWeight: 800, fontSize: 14, marginTop: 6 },
   errorText: { fontSize: 12, color: "#c0392b", fontWeight: 600 },
   adminWrap: { maxWidth: 1040, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 },
+  headerRow: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" },
   adminTitle: { fontSize: 24, fontWeight: 800, color: "var(--sahy-blue)", margin: 0, fontFamily: "var(--font-display)" },
+  logoutBtn: { display: "flex", alignItems: "center", gap: 6, border: "1px solid var(--line)", background: "#fff", borderRadius: 10, padding: "8px 14px", fontSize: 12.5, fontWeight: 600, color: "var(--muted)" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 },
   statCard: { background: "#fff", border: "1px solid var(--line)", borderRadius: 16, padding: "16px 18px" },
   statLabel: { fontSize: 11.5, color: "var(--muted)", fontWeight: 600, marginBottom: 6 },

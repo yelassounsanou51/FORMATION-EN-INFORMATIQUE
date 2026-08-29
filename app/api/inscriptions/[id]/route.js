@@ -2,14 +2,17 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { sendConfirmationEmail } from "@/lib/email";
 import { generateReceiptPdfBase64 } from "@/lib/pdfReceipt";
+import { isAdminRequest } from "@/lib/auth";
 
-function checkAdmin(request) {
-  const adminCode = request.headers.get("x-admin-code");
-  return adminCode && adminCode === process.env.ADMIN_CODE;
-}
-
+// Cette route sert uniquement le tableau de bord admin désormais : la
+// consultation publique passe par /api/suivi (ID + téléphone), qui ne
+// permet pas d'énumérer les inscriptions une par une.
 export async function GET(request, { params }) {
   try {
+    if (!isAdminRequest(request)) {
+      return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
+    }
+
     const { id } = params;
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase.from("inscriptions").select("*").eq("id", id).single();
@@ -27,7 +30,7 @@ export async function GET(request, { params }) {
 
 export async function PATCH(request, { params }) {
   try {
-    if (!checkAdmin(request)) {
+    if (!isAdminRequest(request)) {
       return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
     }
 
@@ -72,7 +75,7 @@ export async function PATCH(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    if (!checkAdmin(request)) {
+    if (!isAdminRequest(request)) {
       return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
     }
 

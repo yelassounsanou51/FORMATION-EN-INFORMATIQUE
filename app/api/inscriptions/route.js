@@ -1,9 +1,28 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { genReceiptNumber, OPTIONS_INSCRIPTION } from "@/lib/config";
+import { isAdminRequest } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 export async function POST(request) {
   try {
+    const ip = getClientIp(request);
+
+    // Maximum 5 inscriptions toutes les 30 minutes par IP : assez large pour
+    // un usage normal (une famille, une connexion partagée), assez strict
+    // pour bloquer un script qui remplirait la base de fausses inscriptions.
+    const { allowed, retryAfterSeconds } = await checkRateLimit(`inscription:${ip}`, {
+      maxAttempts: 5,
+      windowSeconds: 30 * 60,
+    });
+
+    if (!allowed) {
+      return NextResponse.json(
+        { error: `Trop de tentatives. Réessayez dans ${Math.ceil(retryAfterSeconds / 60)} minute(s).` },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const { nom, prenom, telephone, email, sexe, profession, operateur, transactionRef, optionId } = body;
 
@@ -64,8 +83,7 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
-    const adminCode = request.headers.get("x-admin-code");
-    if (!adminCode || adminCode !== process.env.ADMIN_CODE) {
+    if (!isAdminRequest(request)) {
       return NextResponse.json({ error: "Non autorise." }, { status: 401 });
     }
 

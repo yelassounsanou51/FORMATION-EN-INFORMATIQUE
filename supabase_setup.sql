@@ -29,3 +29,16 @@ create policy "Tout le monde peut s inscrire"
   on inscriptions for insert
   to anon
   with check (true);
+
+-- Table utilisée par le limiteur de débit (lib/rateLimit.js) pour freiner
+-- les tentatives répétées sur le login admin, le formulaire d'inscription
+-- et le suivi public.
+create table if not exists rate_limits (
+  key text primary key,
+  count integer not null default 1,
+  window_start timestamptz not null default now()
+);
+
+alter table rate_limits enable row level security;
+-- Aucune policy pour anon/authenticated : seule la clé service_role
+-- (utilisée uniquement côté serveur) peut lire/écrire cette table.

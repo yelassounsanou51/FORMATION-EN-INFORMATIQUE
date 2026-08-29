@@ -9,19 +9,28 @@ export default function TrackingClient() {
   const searchParams = useSearchParams();
   const initialId = searchParams.get("id") || "";
   const [idInput, setIdInput] = useState(initialId);
+  const [telInput, setTelInput] = useState("");
   const [record, setRecord] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
 
-  async function lookup(id) {
-    if (!id.trim()) return;
+  async function lookup(id, telephone) {
+    if (!id.trim() || !telephone.trim()) {
+      setError("Entrez votre numéro de suivi et le téléphone utilisé à l'inscription.");
+      setSearched(true);
+      return;
+    }
     setLoading(true);
     setError("");
     setRecord(null);
     setSearched(true);
     try {
-      const res = await fetch(`/api/inscriptions/${id.trim()}`);
+      const res = await fetch("/api/suivi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: id.trim(), telephone: telephone.trim() }),
+      });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Inscription introuvable.");
@@ -36,8 +45,8 @@ export default function TrackingClient() {
   }
 
   useEffect(() => {
-    if (initialId) lookup(initialId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // On ne relance pas automatiquement la recherche au chargement : le
+    // téléphone est désormais nécessaire et n'est jamais mis dans l'URL.
   }, []);
 
   async function downloadReceipt() {
@@ -123,7 +132,8 @@ export default function TrackingClient() {
     <div style={styles.wrap}>
       <h1 style={styles.title}>Suivre mon inscription</h1>
       <p style={styles.subtitle}>
-        Entrez votre numéro de suivi (ex: IB-20260623-1234) pour connaître l'état de votre dossier.
+        Entrez votre numéro de suivi (ex: IB-20260623-104822) et le numéro de téléphone
+        utilisé à l'inscription pour connaître l'état de votre dossier.
       </p>
 
       <div style={styles.searchBox}>
@@ -131,11 +141,20 @@ export default function TrackingClient() {
         <input
           value={idInput}
           onChange={(e) => setIdInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && lookup(idInput)}
-          placeholder="IB-20260623-1234"
+          onKeyDown={(e) => e.key === "Enter" && lookup(idInput, telInput)}
+          placeholder="Numéro de suivi (IB-...)"
           style={styles.searchInput}
         />
-        <button onClick={() => lookup(idInput)} style={styles.searchBtn}>Vérifier</button>
+      </div>
+      <div style={styles.searchBox}>
+        <input
+          value={telInput}
+          onChange={(e) => setTelInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && lookup(idInput, telInput)}
+          placeholder="Téléphone utilisé à l'inscription"
+          style={styles.searchInput}
+        />
+        <button onClick={() => lookup(idInput, telInput)} style={styles.searchBtn}>Vérifier</button>
       </div>
 
       {loading && <p style={{ textAlign: "center", color: "var(--muted)" }}>Recherche en cours...</p>}
