@@ -1,19 +1,9 @@
 /** @type {import('next').NextConfig} */
+// Remarque : la Content-Security-Policy (script-src) n'est plus définie ici,
+// mais dans middleware.js, car elle a besoin d'un "nonce" différent à chaque
+// requête pour autoriser les scripts internes de Next.js sans ouvrir la
+// porte à n'importe quel script (voir middleware.js pour le détail).
 const securityHeaders = [
-  {
-    key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      "script-src 'self'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data:",
-      "font-src 'self'",
-      "connect-src 'self'",
-      "frame-ancestors 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-    ].join("; "),
-  },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

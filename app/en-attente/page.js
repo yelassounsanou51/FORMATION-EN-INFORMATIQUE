@@ -3,6 +3,8 @@ import PendingClient from "./PendingClient";
 import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
 
+export const dynamic = "force-dynamic";
+
 export default function EnAttentePage() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
