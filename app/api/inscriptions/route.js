@@ -27,10 +27,10 @@ export async function POST(request) {
     const { nom, prenom, telephone, email, sexe, profession, operateur, transactionRef, optionId } = body;
 
     if (!nom?.trim() || !prenom?.trim()) {
-      return NextResponse.json({ error: "Le nom et le prenom sont requis." }, { status: 400 });
+      return NextResponse.json({ error: "Le nom et le prénom sont requis." }, { status: 400 });
     }
     if (!telephone || !/^[\d+ ]{8,}$/.test(telephone.trim())) {
-      return NextResponse.json({ error: "Numero de telephone invalide." }, { status: 400 });
+      return NextResponse.json({ error: "Numéro de téléphone invalide." }, { status: 400 });
     }
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 });
@@ -39,12 +39,12 @@ export async function POST(request) {
       return NextResponse.json({ error: "Le champ sexe est requis." }, { status: 400 });
     }
     if (!operateur) {
-      return NextResponse.json({ error: "L operateur de paiement est requis." }, { status: 400 });
+      return NextResponse.json({ error: "L'opérateur de paiement est requis." }, { status: 400 });
     }
 
     const option = OPTIONS_INSCRIPTION.find((o) => o.id === optionId);
     if (!option) {
-      return NextResponse.json({ error: "Option d inscription invalide." }, { status: 400 });
+      return NextResponse.json({ error: "Option d'inscription invalide." }, { status: 400 });
     }
 
     const supabase = getSupabaseAdmin();
@@ -64,14 +64,14 @@ export async function POST(request) {
         transaction_ref: transactionRef?.trim() || null,
         montant: option.prix,
         option_label: option.label,
-        statut: "a verifier",
+        statut: "à vérifier",
       })
       .select()
       .single();
 
     if (error) {
       console.error("Erreur Supabase (insert):", error);
-      return NextResponse.json({ error: "Impossible d enregistrer l inscription. Reessayez." }, { status: 500 });
+      return NextResponse.json({ error: "Impossible d'enregistrer l'inscription. Réessayez." }, { status: 500 });
     }
 
     return NextResponse.json({ record: data }, { status: 201 });
@@ -84,7 +84,7 @@ export async function POST(request) {
 export async function GET(request) {
   try {
     if (!isAdminRequest(request)) {
-      return NextResponse.json({ error: "Non autorise." }, { status: 401 });
+      return NextResponse.json({ error: "Non autorisé." }, { status: 401 });
     }
 
     const supabase = getSupabaseAdmin();

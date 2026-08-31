@@ -21,17 +21,17 @@ export default function HomePage() {
         <div style={styles.heroInner}>
           <span style={styles.eyebrow}>{FORMATION.organisateur} · {FORMATION.subtitle}</span>
           <h1 style={styles.h1}>
-            Maitrisez l'outil
+            Maîtrisez l'outil
             <br />
             <span style={{ color: "var(--sahy-orange)" }}>informatique</span>
           </h1>
           <p style={styles.heroText}>
             Word, Excel, PowerPoint, Internet et Intelligence Artificielle — une semaine pour
-            prendre en main la suite bureautique, a Bobo-Dioulasso.
+            prendre en main la suite bureautique, à Bobo-Dioulasso.
           </p>
           <div style={styles.infoChips}>
             <span style={styles.chip}><MapPin size={15} /> {FORMATION.lieu}</span>
-            <span style={styles.chip}><Clock3 size={15} /> Debut le {FORMATION.debut} · {FORMATION.duree}</span>
+            <span style={styles.chip}><Clock3 size={15} /> Début le {FORMATION.debut} · {FORMATION.duree}</span>
           </div>
         </div>
       </section>
@@ -57,8 +57,8 @@ export default function HomePage() {
         <div style={styles.sectionInner}>
           <h2 style={styles.sectionTitle}>Choisissez votre formule</h2>
           <p style={styles.optionsSubtitle}>
-            Deux options adaptees a votre situation. Dans les deux cas, votre place est reservee
-            et vous recevez un recu officiel.
+            Deux options adaptées à votre situation. Dans les deux cas, votre place est réservée
+            et vous recevez un reçu officiel.
           </p>
           <div style={styles.optionsGrid}>
             {OPTIONS_INSCRIPTION.map((opt) => (

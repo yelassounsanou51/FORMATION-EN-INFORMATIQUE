@@ -34,14 +34,14 @@ export default function InscriptionClient() {
   function validate() {
     const e = {};
     if (!form.nom.trim()) e.nom = "Le nom est requis.";
-    if (!form.prenom.trim()) e.prenom = "Le prenom est requis.";
-    if (!/^[\d+ ]{8,}$/.test(form.telephone.trim())) e.telephone = "Numero de telephone invalide.";
+    if (!form.prenom.trim()) e.prenom = "Le prénom est requis.";
+    if (!/^[\d+ ]{8,}$/.test(form.telephone.trim())) e.telephone = "Numéro de téléphone invalide.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
       e.email = "Adresse email invalide.";
     }
-    if (!form.sexe) e.sexe = "Selectionnez une option.";
-    if (!form.operateur) e.operateur = "Selectionnez l'operateur.";
-    if (!form.declaration) e.declaration = "Vous devez confirmer avoir effectue le paiement.";
+    if (!form.sexe) e.sexe = "Sélectionnez une option.";
+    if (!form.operateur) e.operateur = "Sélectionnez l'opérateur.";
+    if (!form.declaration) e.declaration = "Vous devez confirmer avoir effectué le paiement.";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -61,14 +61,14 @@ export default function InscriptionClient() {
       const data = await res.json();
 
       if (!res.ok) {
-        setServerError(data.error || "Une erreur est survenue. Reessayez.");
+        setServerError(data.error || "Une erreur est survenue. Réessayez.");
         setSubmitting(false);
         return;
       }
 
       router.push(`/en-attente?id=${data.record.id}`);
     } catch (err) {
-      setServerError("Impossible de contacter le serveur. Verifiez votre connexion.");
+      setServerError("Impossible de contacter le serveur. Vérifiez votre connexion.");
       setSubmitting(false);
     }
   }
@@ -101,19 +101,19 @@ export default function InscriptionClient() {
           <Field label="Nom" error={errors.nom}>
             <input style={inputStyle(errors.nom)} value={form.nom} onChange={(e) => set("nom", e.target.value)} placeholder="SANOU" />
           </Field>
-          <Field label="Prenom" error={errors.prenom}>
-            <input style={inputStyle(errors.prenom)} value={form.prenom} onChange={(e) => set("prenom", e.target.value)} placeholder="Aicha" />
+          <Field label="Prénom" error={errors.prenom}>
+            <input style={inputStyle(errors.prenom)} value={form.prenom} onChange={(e) => set("prenom", e.target.value)} placeholder="Aïcha" />
           </Field>
         </div>
 
-        <Field label="Numero de telephone" error={errors.telephone}>
+        <Field label="Numéro de téléphone" error={errors.telephone}>
           <input style={inputStyle(errors.telephone)} value={form.telephone} onChange={(e) => set("telephone", e.target.value)} placeholder="+226 70 00 00 00" />
         </Field>
 
         <Field label="Adresse email" error={errors.email}>
           <input type="email" style={inputStyle(errors.email)} value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="vous@exemple.com" />
         </Field>
-        <div style={styles.hint}>Votre recu sera envoye a cette adresse apres confirmation.</div>
+        <div style={styles.hint}>Votre reçu sera envoyé à cette adresse après confirmation.</div>
 
         <div style={styles.formGrid2}>
           <Field label="Sexe" error={errors.sexe}>
@@ -124,7 +124,7 @@ export default function InscriptionClient() {
             </select>
           </Field>
           <Field label="Profession (optionnel)">
-            <input style={inputStyle()} value={form.profession} onChange={(e) => set("profession", e.target.value)} placeholder="Etudiant(e)..." />
+            <input style={inputStyle()} value={form.profession} onChange={(e) => set("profession", e.target.value)} placeholder="Étudiant(e)..." />
           </Field>
         </div>
 
@@ -136,7 +136,7 @@ export default function InscriptionClient() {
             <h3 style={styles.payTitle}>Paiement Mobile Money</h3>
           </div>
           <div style={styles.payAmountBox}>
-            Envoyez exactement <strong>{formatFCFA(option.prix)}</strong> sur l'un des numeros ci-dessous.
+            Envoyez exactement <strong>{formatFCFA(option.prix)}</strong> sur l'un des numéros ci-dessous.
           </div>
           <div style={styles.payNumbers}>
             {PAYMENT_NUMBERS.map((p) => (
@@ -144,7 +144,7 @@ export default function InscriptionClient() {
             ))}
           </div>
 
-          <Field label="Operateur utilise" error={errors.operateur}>
+          <Field label="Opérateur utilisé" error={errors.operateur}>
             <select style={inputStyle(errors.operateur)} value={form.operateur} onChange={(e) => set("operateur", e.target.value)}>
               <option value="">Choisir</option>
               <option value="Orange Money">Orange Money</option>
@@ -153,14 +153,14 @@ export default function InscriptionClient() {
             </select>
           </Field>
 
-          <Field label="Reference de la transaction (optionnel)">
-            <input style={inputStyle()} value={form.transactionRef} onChange={(e) => set("transactionRef", e.target.value)} placeholder="ID ou reference SMS recu de l'operateur" />
+          <Field label="Référence de la transaction (optionnel)">
+            <input style={inputStyle()} value={form.transactionRef} onChange={(e) => set("transactionRef", e.target.value)} placeholder="ID ou référence SMS reçu de l'opérateur" />
           </Field>
 
           <label style={styles.checkboxRow}>
             <input type="checkbox" checked={form.declaration} onChange={(e) => set("declaration", e.target.checked)} style={{ marginTop: 3 }} />
             <span style={{ color: errors.declaration ? "#c0392b" : "var(--ink)" }}>
-              Je confirme avoir effectue le paiement de {formatFCFA(option.prix)}. Mon inscription sera validee apres verification par l'organisateur.
+              Je confirme avoir effectué le paiement de {formatFCFA(option.prix)}. Mon inscription sera validée après vérification par l'organisateur.
             </span>
           </label>
           {errors.declaration && <div style={styles.errorText}>{errors.declaration}</div>}
@@ -208,7 +208,7 @@ function PaymentRow({ operator, number }) {
         style={styles.copyBtn}
       >
         {copied ? <CheckCircle2 size={15} /> : <Copy size={15} />}
-        {copied ? "Copie" : "Copier"}
+        {copied ? "Copié" : "Copier"}
       </button>
     </div>
   );

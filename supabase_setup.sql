@@ -12,12 +12,19 @@ create table if not exists inscriptions (
   transaction_ref text,
   montant integer not null,
   option_label text,
-  statut text not null default 'a verifier',
+  statut text not null default 'à vérifier',
   date_inscription timestamptz not null default now()
 );
 
 alter table inscriptions add column if not exists email text;
 alter table inscriptions add column if not exists option_label text;
+
+-- Correction d'un bug d'accent : les inscriptions enregistrées avant ce
+-- correctif ont le statut "a verifier" (sans accent), alors que le reste
+-- du site attend "à vérifier" (avec accent). Sans cette ligne, ces anciennes
+-- inscriptions resteraient invisibles dans le filtre "À vérifier" de
+-- l'espace admin. Sûr à rejouer : ne touche que les lignes concernées.
+update inscriptions set statut = 'à vérifier' where statut = 'a verifier';
 
 create index if not exists idx_inscriptions_telephone on inscriptions (telephone);
 create index if not exists idx_inscriptions_statut on inscriptions (statut);
