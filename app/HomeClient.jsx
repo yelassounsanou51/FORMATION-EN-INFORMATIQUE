@@ -31,7 +31,7 @@ export default function HomePage() {
           </p>
           <div style={styles.infoChips}>
             <span style={styles.chip}><MapPin size={15} /> {FORMATION.lieu}</span>
-            <span style={styles.chip}><Clock3 size={15} /> Début le {FORMATION.debut} · {FORMATION.duree}</span>
+            <span style={styles.chip}><Clock3 size={15} /> Du {FORMATION.debut} au {FORMATION.fin}</span>
           </div>
         </div>
       </section>

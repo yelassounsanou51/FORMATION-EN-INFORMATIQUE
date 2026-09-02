@@ -120,7 +120,7 @@ export default function TrackingClient() {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     const footnote = doc.splitTextToSize(
-      `Ce reçu confirme l'inscription validée à la formation ${FORMATION.title} (${FORMATION.debut}, ${FORMATION.lieu}). Émis par ${FORMATION.organisateur}.`,
+      `Ce reçu confirme l'inscription validée à la formation ${FORMATION.title} (du ${FORMATION.debut} au ${FORMATION.fin}, ${FORMATION.lieu}). Émis par ${FORMATION.organisateur}.`,
       515
     );
     doc.text(footnote, 40, y);

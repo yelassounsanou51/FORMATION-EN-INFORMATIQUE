@@ -113,6 +113,7 @@ function Dashboard({ onLogout }) {
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("toutes");
+  const [emailNotice, setEmailNotice] = useState(null);
 
   async function load() {
     setLoading(true);
@@ -141,11 +142,29 @@ function Dashboard({ onLogout }) {
 
   async function updateStatus(id, statut) {
     setRegistrations((prev) => prev.map((r) => (r.id === id ? { ...r, statut } : r)));
-    await fetch(`/api/inscriptions/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ statut }),
-    });
+    setEmailNotice(null);
+    try {
+      const res = await fetch(`/api/inscriptions/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statut }),
+      });
+      const data = await res.json();
+      // On affiche un avertissement visible si le statut a bien été mis à
+      // jour mais que l'email n'a pas pu partir (clé Resend manquante,
+      // domaine non vérifié, etc.) — plutôt que de laisser ça silencieux
+      // dans des logs serveur que tu ne peux pas consulter facilement.
+      if (statut === "confirmé" && data.emailResult && !data.emailResult.success) {
+        setEmailNotice({
+          type: "warning",
+          text: `Statut mis à jour, mais l'email n'a pas pu être envoyé : ${data.emailResult.error || "erreur inconnue"}`,
+        });
+      } else if (statut === "confirmé" && data.emailResult?.success) {
+        setEmailNotice({ type: "success", text: "Email de confirmation envoyé avec succès." });
+      }
+    } catch (e) {
+      setEmailNotice({ type: "warning", text: "Statut mis à jour, mais impossible de vérifier l'envoi de l'email." });
+    }
   }
 
   async function deleteRegistration(id) {
@@ -195,6 +214,17 @@ function Dashboard({ onLogout }) {
 
       {loading && <p style={{ color: "var(--muted)" }}>Chargement...</p>}
       {error && <div style={styles.errorText}>{error}</div>}
+      {emailNotice && (
+        <div
+          style={{
+            ...styles.emailNotice,
+            background: emailNotice.type === "success" ? "var(--success-bg)" : "var(--warning-bg)",
+            color: emailNotice.type === "success" ? "var(--success)" : "var(--warning)",
+          }}
+        >
+          {emailNotice.text}
+        </div>
+      )}
       {!loading && !error && filtered.length === 0 && <div style={styles.emptyState}>Aucune inscription pour le moment.</div>}
 
       <div style={styles.tableWrap}>
@@ -266,6 +296,7 @@ const styles = {
   filterBtn: { border: "1px solid var(--line)", background: "#fff", borderRadius: 10, padding: "8px 14px", fontSize: 12.5, fontWeight: 600, color: "var(--ink)" },
   filterBtnActive: { border: "1px solid var(--sahy-blue)", background: "var(--sahy-blue)", borderRadius: 10, padding: "8px 14px", fontSize: 12.5, fontWeight: 600, color: "#fff" },
   emptyState: { textAlign: "center", color: "var(--muted)", padding: "40px 0", fontSize: 14 },
+  emailNotice: { borderRadius: 12, padding: "12px 16px", fontSize: 13, fontWeight: 600 },
   tableWrap: { display: "flex", flexDirection: "column", gap: 10 },
   regRow: { background: "#fff", border: "1px solid var(--line)", borderRadius: 14, padding: "16px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" },
   regMain: { display: "flex", flexDirection: "column", gap: 6 },

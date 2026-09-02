@@ -58,3 +58,28 @@ cette correction rapide. À prévoir dans un second temps.
 | `POST /api/admin-logout` | Déconnexion admin | Supprime le cookie |
 | `GET /api/inscriptions` | Liste complète (tableau de bord) | Cookie de session admin requis |
 | `GET/PATCH/DELETE /api/inscriptions/[id]` | Gestion d'une inscription | Cookie de session admin requis |
+
+## Configurer l'envoi d'email via Gmail
+
+Le site envoie les reçus de confirmation depuis `sahytechnologie@gmail.com`
+via le SMTP de Gmail (pas via Resend). Il faut un **mot de passe
+d'application** — une clé spéciale différente du mot de passe habituel du
+compte, à usage unique pour cette intégration.
+
+1. Va sur [myaccount.google.com/security](https://myaccount.google.com/security)
+   avec le compte `sahytechnologie@gmail.com`
+2. Active la **validation en deux étapes** si ce n'est pas déjà fait
+   (obligatoire pour créer un mot de passe d'application)
+3. Cherche **"Mots de passe des applications"** (ou va directement sur
+   [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords))
+4. Crée-en un nouveau, nomme-le par exemple "Site inscriptions"
+5. Google affiche un mot de passe de 16 caractères — copie-le immédiatement
+   (il ne sera plus jamais réaffiché)
+6. Sur Vercel, ajoute deux variables :
+   - `GMAIL_USER` = `sahytechnologie@gmail.com`
+   - `GMAIL_APP_PASSWORD` = le mot de passe généré à l'étape 5 (sans espaces)
+   - Retire `RESEND_API_KEY`, qui n'est plus utilisée
+
+Limite : 500 emails envoyés par jour avec un compte Gmail standard —
+largement suffisant pour des inscriptions à une formation.
+
