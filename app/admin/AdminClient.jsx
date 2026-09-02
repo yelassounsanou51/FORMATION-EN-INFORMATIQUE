@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ShieldCheck, Search, Trash2, BadgeCheck, Clock3, Phone, LogOut } from "lucide-react";
+import { ShieldCheck, Search, Trash2, BadgeCheck, Clock3, Phone, Mail, LogOut, MessageCircle, Download } from "lucide-react";
 import TopBar from "@/components/TopBar";
 import Footer from "@/components/Footer";
-import { formatFCFA } from "@/lib/config";
+import { formatFCFA, buildWhatsAppLink } from "@/lib/config";
 
 export default function AdminPage() {
   const [code, setCode] = useState("");
@@ -172,6 +172,44 @@ function Dashboard({ onLogout }) {
     await fetch(`/api/inscriptions/${id}`, { method: "DELETE" });
   }
 
+  function sendViaWhatsApp(r) {
+    const suiviUrl = `${window.location.origin}/suivi?id=${encodeURIComponent(r.id)}`;
+    const message =
+      r.statut === "confirmé"
+        ? `Bonjour ${r.prenom}, votre inscription à la formation Informatique Bureautique (SAHY TECHNOLOGIE) est confirmée ✅. Numéro de suivi : ${r.id}. Retrouvez et téléchargez votre reçu ici : ${suiviUrl} (il vous sera demandé votre numéro de téléphone pour le retrouver).`
+        : `Bonjour ${r.prenom}, nous avons bien reçu votre inscription à la formation Informatique Bureautique (SAHY TECHNOLOGIE). Numéro de suivi : ${r.id}. Votre paiement est en cours de vérification.`;
+    window.open(buildWhatsAppLink(r.telephone, message), "_blank");
+  }
+
+  // Export CSV de tous les inscrits (nom, téléphone, email, statut...) —
+  // pratique pour envoyer des informations plus tard depuis Excel, WhatsApp
+  // Business, ou tout autre outil, sans avoir à tout retaper à la main.
+  function exportCsv() {
+    const header = ["Nom", "Prenom", "Telephone", "Email", "Statut", "Montant", "Operateur", "Numero de suivi", "Date d'inscription"];
+    const rows = registrations.map((r) => [
+      r.nom,
+      r.prenom,
+      r.telephone,
+      r.email || "",
+      r.statut,
+      r.montant,
+      r.operateur,
+      r.id,
+      new Date(r.date_inscription).toLocaleString("fr-FR"),
+    ]);
+    const escape = (v) => `"${String(v).replace(/"/g, '""')}"`;
+    const csvContent = [header, ...rows].map((row) => row.map(escape).join(",")).join("\r\n");
+    // Le "\ufeff" (BOM) devant le contenu permet à Excel d'afficher
+    // correctement les accents français à l'ouverture du fichier.
+    const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `inscrits_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const filtered = registrations.filter((r) => {
     const matchesQuery = `${r.nom} ${r.prenom} ${r.telephone}`.toLowerCase().includes(query.toLowerCase());
     const matchesFilter = filter === "toutes" || r.statut === filter;
@@ -186,9 +224,14 @@ function Dashboard({ onLogout }) {
     <div style={styles.adminWrap}>
       <div style={styles.headerRow}>
         <h2 style={styles.adminTitle}>Inscriptions reçues</h2>
-        <button onClick={onLogout} style={styles.logoutBtn}>
-          <LogOut size={14} /> Déconnexion
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={exportCsv} style={styles.exportBtn} disabled={registrations.length === 0}>
+            <Download size={14} /> Exporter (CSV)
+          </button>
+          <button onClick={onLogout} style={styles.logoutBtn}>
+            <LogOut size={14} /> Déconnexion
+          </button>
+        </div>
       </div>
 
       <div style={styles.statsRow}>
@@ -240,6 +283,7 @@ function Dashboard({ onLogout }) {
               </div>
               <div style={styles.regMeta}>
                 <span><Phone size={12} /> {r.telephone}</span>
+                {r.email && <span><Mail size={12} /> {r.email}</span>}
                 <span>{r.operateur}</span>
                 <span>{r.transaction_ref ? `Réf. ${r.transaction_ref}` : "Sans référence"}</span>
                 <span>{formatFCFA(r.montant)}</span>
@@ -252,6 +296,9 @@ function Dashboard({ onLogout }) {
               ) : (
                 <button onClick={() => updateStatus(r.id, "à vérifier")} style={styles.undoBtn}>Annuler</button>
               )}
+              <button onClick={() => sendViaWhatsApp(r)} style={styles.whatsappBtn}>
+                <MessageCircle size={14} /> WhatsApp
+              </button>
               <button onClick={() => deleteRegistration(r.id)} style={styles.deleteBtn}><Trash2 size={14} /></button>
             </div>
           </div>
@@ -285,6 +332,7 @@ const styles = {
   headerRow: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" },
   adminTitle: { fontSize: 24, fontWeight: 800, color: "var(--sahy-blue)", margin: 0, fontFamily: "var(--font-display)" },
   logoutBtn: { display: "flex", alignItems: "center", gap: 6, border: "1px solid var(--line)", background: "#fff", borderRadius: 10, padding: "8px 14px", fontSize: 12.5, fontWeight: 600, color: "var(--muted)" },
+  exportBtn: { display: "flex", alignItems: "center", gap: 6, border: "1px solid var(--sahy-blue)", background: "#fff", borderRadius: 10, padding: "8px 14px", fontSize: 12.5, fontWeight: 700, color: "var(--sahy-blue)" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 },
   statCard: { background: "#fff", border: "1px solid var(--line)", borderRadius: 16, padding: "16px 18px" },
   statLabel: { fontSize: 11.5, color: "var(--muted)", fontWeight: 600, marginBottom: 6 },
@@ -307,4 +355,5 @@ const styles = {
   confirmBtn: { background: "var(--success)", color: "#fff", border: "none", borderRadius: 10, padding: "9px 15px", fontWeight: 700, fontSize: 12.5 },
   undoBtn: { background: "#fff", color: "var(--muted)", border: "1px solid var(--line)", borderRadius: 10, padding: "9px 15px", fontWeight: 700, fontSize: 12.5 },
   deleteBtn: { background: "#fff", color: "#c0392b", border: "1px solid var(--line)", borderRadius: 10, padding: "9px 11px" },
+  whatsappBtn: { display: "flex", alignItems: "center", gap: 6, background: "#25D366", color: "#fff", border: "none", borderRadius: 10, padding: "9px 14px", fontWeight: 700, fontSize: 12.5 },
 };

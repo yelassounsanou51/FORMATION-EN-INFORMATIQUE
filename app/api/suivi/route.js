@@ -2,11 +2,16 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
-// Route PUBLIQUE (aucune session admin requise), mais volontairement stricte :
-// - elle exige le numéro de suivi ET le téléphone utilisé à l'inscription
-//   (un attaquant ne peut plus se contenter de deviner l'ID) ;
-// - elle est limitée en débit par IP, pour empêcher un script d'essayer
-//   des milliers de combinaisons.
+// Route PUBLIQUE (aucune session admin requise). Le numéro de téléphone
+// utilisé à l'inscription suffit désormais à retrouver son inscription — le
+// numéro de suivi reste accepté en complément si on le connaît, pour
+// affiner la recherche, mais n'est plus obligatoire (plus simple à l'usage).
+//
+// Compromis assumé : un numéro de téléphone est moins facile à deviner en
+// masse qu'un identifiant séquentiel, et la route reste limitée en débit
+// par IP — mais quelqu'un qui connaît déjà le numéro d'une personne précise
+// peut voir son inscription. C'est un choix délibéré de simplicité plutôt
+// que d'anonymat total, adapté à une petite formation locale.
 export async function POST(request) {
   try {
     const ip = getClientIp(request);
@@ -24,37 +29,34 @@ export async function POST(request) {
 
     const { id, telephone } = await request.json();
 
-    if (!id?.trim() || !telephone?.trim()) {
-      return NextResponse.json(
-        { error: "Le numéro de suivi et le téléphone sont requis." },
-        { status: 400 }
-      );
+    if (!telephone?.trim()) {
+      return NextResponse.json({ error: "Le numéro de téléphone est requis." }, { status: 400 });
     }
 
     const supabase = getSupabaseAdmin();
-    const { data, error } = await supabase
-      .from("inscriptions")
-      .select("*")
-      .eq("id", id.trim())
-      .eq("telephone", telephone.trim())
-      .maybeSingle();
+    let query = supabase.from("inscriptions").select("*").eq("telephone", telephone.trim());
+    if (id?.trim()) {
+      query = query.eq("id", id.trim());
+    }
+
+    const { data, error } = await query.order("date_inscription", { ascending: false });
 
     if (error) {
       console.error("Erreur Supabase (suivi):", error);
       return NextResponse.json({ error: "Une erreur est survenue." }, { status: 500 });
     }
 
-    // Message volontairement générique : on ne précise jamais si c'est l'ID
-    // ou le téléphone qui est incorrect, pour ne pas aider à deviner l'un
-    // des deux par élimination.
-    if (!data) {
+    if (!data || data.length === 0) {
       return NextResponse.json(
         { error: "Aucune inscription ne correspond à ces informations." },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ record: data });
+    // Toujours un tableau : une seule inscription la plupart du temps, mais
+    // plusieurs si le même numéro a servi à inscrire plusieurs personnes
+    // (ex: un parent inscrivant sa famille avec son propre téléphone).
+    return NextResponse.json({ records: data });
   } catch (err) {
     console.error("Erreur API suivi (POST):", err);
     return NextResponse.json({ error: "Une erreur est survenue." }, { status: 500 });

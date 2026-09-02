@@ -10,32 +10,37 @@ export default function TrackingClient() {
   const initialId = searchParams.get("id") || "";
   const [idInput, setIdInput] = useState(initialId);
   const [telInput, setTelInput] = useState("");
-  const [record, setRecord] = useState(null);
+  const [records, setRecords] = useState(null);
+  const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
 
   async function lookup(id, telephone) {
-    if (!id.trim() || !telephone.trim()) {
-      setError("Entrez votre numéro de suivi et le téléphone utilisé à l'inscription.");
+    if (!telephone.trim()) {
+      setError("Entrez le numéro de téléphone utilisé à l'inscription.");
       setSearched(true);
       return;
     }
     setLoading(true);
     setError("");
-    setRecord(null);
+    setRecords(null);
+    setSelected(null);
     setSearched(true);
     try {
       const res = await fetch("/api/suivi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: id.trim(), telephone: telephone.trim() }),
+        body: JSON.stringify({ id: id.trim() || undefined, telephone: telephone.trim() }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error || "Inscription introuvable.");
       } else {
-        setRecord(data.record);
+        setRecords(data.records);
+        // Une seule inscription trouvée : on l'affiche directement, pas
+        // besoin de faire choisir la personne dans une liste.
+        if (data.records.length === 1) setSelected(data.records[0]);
       }
     } catch (e) {
       setError("Impossible de vérifier le statut. Réessayez.");
@@ -43,6 +48,8 @@ export default function TrackingClient() {
       setLoading(false);
     }
   }
+
+  const record = selected;
 
   useEffect(() => {
     // On ne relance pas automatiquement la recherche au chargement : le
@@ -132,21 +139,12 @@ export default function TrackingClient() {
     <div style={styles.wrap}>
       <h1 style={styles.title}>Suivre mon inscription</h1>
       <p style={styles.subtitle}>
-        Entrez votre numéro de suivi (ex: IB-20260623-104822) et le numéro de téléphone
-        utilisé à l'inscription pour connaître l'état de votre dossier.
+        Entrez le numéro de téléphone utilisé à l'inscription pour connaître l'état de votre
+        dossier.
       </p>
 
       <div style={styles.searchBox}>
         <Search size={16} style={{ color: "var(--muted)" }} />
-        <input
-          value={idInput}
-          onChange={(e) => setIdInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && lookup(idInput, telInput)}
-          placeholder="Numéro de suivi (IB-...)"
-          style={styles.searchInput}
-        />
-      </div>
-      <div style={styles.searchBox}>
         <input
           value={telInput}
           onChange={(e) => setTelInput(e.target.value)}
@@ -156,9 +154,36 @@ export default function TrackingClient() {
         />
         <button onClick={() => lookup(idInput, telInput)} style={styles.searchBtn}>Vérifier</button>
       </div>
+      <details style={styles.optionalDetails}>
+        <summary style={styles.optionalSummary}>
+          Vous connaissez votre numéro de suivi ? (optionnel, utile si plusieurs
+          personnes ont été inscrites avec ce téléphone)
+        </summary>
+        <input
+          value={idInput}
+          onChange={(e) => setIdInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && lookup(idInput, telInput)}
+          placeholder="Numéro de suivi (IB-...)"
+          style={styles.optionalInput}
+        />
+      </details>
 
       {loading && <p style={{ textAlign: "center", color: "var(--muted)" }}>Recherche en cours...</p>}
       {!loading && searched && error && <div style={styles.errorBox}>{error}</div>}
+
+      {!loading && records && records.length > 1 && !selected && (
+        <div style={styles.multiList}>
+          <p style={styles.multiHint}>
+            {records.length} inscriptions trouvées avec ce numéro. Sélectionnez la vôtre :
+          </p>
+          {records.map((r) => (
+            <button key={r.id} onClick={() => setSelected(r)} style={styles.multiItem}>
+              <span style={styles.multiItemName}>{r.nom} {r.prenom}</span>
+              <span style={styles.multiItemMeta}>{r.id} · {r.statut}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {!loading && record && record.statut === "à vérifier" && (
         <div style={styles.pendingCard}>
@@ -226,6 +251,14 @@ const styles = {
   searchInput: { border: "none", outline: "none", fontSize: 14, flex: 1, background: "transparent" },
   searchBtn: { background: "var(--sahy-orange)", color: "#fff", border: "none", borderRadius: 10, padding: "11px 18px", fontWeight: 700, fontSize: 13 },
   errorBox: { background: "#fdecea", color: "#c0392b", fontWeight: 600, borderRadius: 14, padding: "14px 16px", fontSize: 13.5, textAlign: "center" },
+  optionalDetails: { fontSize: 12.5, color: "var(--muted)" },
+  optionalSummary: { cursor: "pointer", padding: "4px 2px" },
+  optionalInput: { width: "100%", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 12px", fontSize: 13, marginTop: 8, boxSizing: "border-box" },
+  multiList: { background: "#fff", border: "1px solid var(--line)", borderRadius: 16, padding: 14, display: "flex", flexDirection: "column", gap: 8 },
+  multiHint: { fontSize: 12.5, color: "var(--muted)", margin: "0 0 4px" },
+  multiItem: { display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 10, padding: "10px 14px", fontSize: 13, textAlign: "left" },
+  multiItemName: { fontWeight: 700, color: "var(--ink)" },
+  multiItemMeta: { fontSize: 11.5, color: "var(--muted)" },
   pendingCard: { background: "var(--warning-bg)", border: "1px solid #fde2b8", borderRadius: 18, padding: 24, textAlign: "center" },
   pendingTitle: { fontWeight: 800, fontSize: 15, color: "var(--warning)", marginTop: 8, fontFamily: "var(--font-display)" },
   pendingText: { fontSize: 13, color: "var(--warning)", lineHeight: 1.6, marginTop: 6 },
